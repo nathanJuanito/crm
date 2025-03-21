@@ -20,6 +20,9 @@ import site.easy.to.build.crm.service.user.UserProfileService;
 import site.easy.to.build.crm.service.user.UserService;
 import site.easy.to.build.crm.util.AuthenticationUtils;
 import site.easy.to.build.crm.util.EmailTokenUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -35,6 +38,7 @@ public class ManagerController {
     private final GoogleGmailApiService googleGmailApiService;
     private final RoleService roleService;
     private final PasswordEncoder passwordEncoder;
+    private static final Logger logger = LoggerFactory.getLogger(ManagerController.class);
 
     @Autowired
     public ManagerController(AuthenticationUtils authenticationUtils, UserProfileService userProfileService, UserService userService,
@@ -64,19 +68,26 @@ public class ManagerController {
 
     @GetMapping("/manager/show-user/{id}")
     public String showUserInfo(@PathVariable("id") int id, Model model, Authentication authentication) {
-        int userId = authenticationUtils.getLoggedInUserId(authentication);
-        User loggedInUser = userService.findById(userId);
-        if(loggedInUser.isInactiveUser()) {
-            return "error/account-inactive";
+        try{
+            int userId = authenticationUtils.getLoggedInUserId(authentication);
+            User loggedInUser = userService.findById(userId);
+            if(loggedInUser.isInactiveUser()) {
+                return "error/account-inactive";
+            }
+            User user = userService.findById(id);
+            if(user == null) {
+                return "error/not-found";
+            }
+            UserProfile profile = user.getUserProfile();
+            model.addAttribute("user", user);
+            model.addAttribute("profile", profile);
+            return "manager/show-user";
+        }catch(Exception e) {
+            logger.error("Erreur lors de l'affichage de l'utilisateur avec l'ID: " + id, e);
+            model.addAttribute("errorMessage", "Une erreur s'est produite lors de la récupération des détails de l'utilisateur.");
+            return "error/generic-error";
         }
-        User user = userService.findById(id);
-        if(user == null) {
-            return "error/not-found";
-        }
-        UserProfile profile = user.getUserProfile();
-        model.addAttribute("user", user);
-        model.addAttribute("profile", profile);
-        return "manager/show-user";
+
     }
 
     @GetMapping("/manager/register-user")

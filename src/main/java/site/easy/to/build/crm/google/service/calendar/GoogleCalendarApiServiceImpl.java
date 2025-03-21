@@ -18,6 +18,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -61,9 +62,26 @@ public class GoogleCalendarApiServiceImpl implements GoogleCalendarApiService {
                 .map(event -> {
                     EventDateTime start = event.getStart();
                     EventDateTime end = event.getEnd();
-                    Map<String, String> startDateTimeParts = TimeDateUtil.extractDateTime(start.getDateTime());
-                    Map<String, String> endDateTimeParts = TimeDateUtil.extractDateTime(end.getDateTime());
-
+                    
+                    Map<String, String> startDateTimeParts;
+                    Map<String, String> endDateTimeParts;
+                    
+                    try {
+                        startDateTimeParts = start != null && start.getDateTime() != null 
+                            ? TimeDateUtil.extractDateTime(start.getDateTime()) 
+                            : createEmptyDateTimeParts();
+                    } catch (Exception e) {
+                        startDateTimeParts = createEmptyDateTimeParts();
+                    }
+                    
+                    try {
+                        endDateTimeParts = end != null && end.getDateTime() != null 
+                            ? TimeDateUtil.extractDateTime(end.getDateTime()) 
+                            : createEmptyDateTimeParts();
+                    } catch (Exception e) {
+                        endDateTimeParts = createEmptyDateTimeParts();
+                    }
+                    
                     return new EventDisplay(
                             event.getId(),
                             event.getSummary(),
@@ -75,6 +93,7 @@ public class GoogleCalendarApiServiceImpl implements GoogleCalendarApiService {
                             event.getAttendees()
                     );
                 })
+
                 .collect(Collectors.toList());
 
         return new EventDisplayList(eventDisplays);
@@ -142,8 +161,25 @@ public class GoogleCalendarApiServiceImpl implements GoogleCalendarApiService {
 
         EventDateTime start = event.getStart();
         EventDateTime end = event.getEnd();
-        Map<String, String> startDateTimeParts = TimeDateUtil.extractDateTime(start.getDateTime());
-        Map<String, String> endDateTimeParts = TimeDateUtil.extractDateTime(end.getDateTime());
+
+        Map<String, String> startDateTimeParts;
+        Map<String, String> endDateTimeParts;
+
+        try {
+            startDateTimeParts = start != null && start.getDateTime() != null 
+                ? TimeDateUtil.extractDateTime(start.getDateTime()) 
+                : createEmptyDateTimeParts();
+        } catch (Exception e) {
+            startDateTimeParts = createEmptyDateTimeParts();
+        }
+
+        try {
+            endDateTimeParts = end != null && end.getDateTime() != null 
+                ? TimeDateUtil.extractDateTime(end.getDateTime()) 
+                : createEmptyDateTimeParts();
+        } catch (Exception e) {
+            endDateTimeParts = createEmptyDateTimeParts();
+        }
 
         return new EventDisplay(
                 event.getId(),
@@ -155,6 +191,7 @@ public class GoogleCalendarApiServiceImpl implements GoogleCalendarApiService {
                 startDateTimeParts.get("timeZone"),
                 event.getAttendees()
         );
+
     }
 
     private void updateLead(OAuthUser oAuthUser, String eventId, String status) {
@@ -170,5 +207,11 @@ public class GoogleCalendarApiServiceImpl implements GoogleCalendarApiService {
             leadService.save(lead);
         }
     }
-
+    private Map<String, String> createEmptyDateTimeParts() {
+        Map<String, String> emptyParts = new HashMap<>();
+        emptyParts.put("date", "");
+        emptyParts.put("time", "");
+        emptyParts.put("timeZone", "");
+        return emptyParts;
+    }
 }

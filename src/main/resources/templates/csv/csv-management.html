@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div th:insert="~{/general/head.html}"></div>
+<meta name="_csrf" content="${_csrf.token}"/>
+<meta name="_csrf_header" content="${_csrf.headerName}"/>
+
+<!-- Editable CSS -->
+<link rel="stylesheet" type="text/css" th:href="@{/css/dataTables.bootstrap4.css}">
+<link rel="stylesheet" type="text/css" th:href="@{/css/responsive.dataTables.min.css}">
+<link th:href="@{/css/login-register-lock.css}" rel="stylesheet">
+<link th:href="@{/css/jquery.toast.css}" rel="stylesheet">
+<!-- Custom CSS -->
+<link th:href="@{/css/style.min.css}" rel="stylesheet">
+<!-- page css -->
+<link th:href="@{/css/pages/inbox.css}" rel="stylesheet">
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
+<!-- Custom CSS for this page -->
+<style>
+    .csv-card {
+        transition: transform 0.3s;
+        margin-bottom: 20px;
+    }
+    .csv-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+    }
+    .csv-icon {
+        font-size: 48px;
+        margin-bottom: 15px;
+    }
+    .file-upload-wrapper {
+        position: relative;
+        margin-bottom: 15px;
+    }
+    .custom-file-upload {
+        border: 1px solid #ccc;
+        display: inline-block;
+        padding: 6px 12px;
+        cursor: pointer;
+        width: 100%;
+        text-align: center;
+        background-color: #f8f9fa;
+        border-radius: 4px;
+    }
+    .file-upload-input {
+        position: absolute;
+        left: 0;
+        top: 0;
+        opacity: 0;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+    }
+    .selected-file {
+        margin-top: 10px;
+        font-style: italic;
+        color: #6c757d;
+    }
+    .alert-container {
+        margin-bottom: 20px;
+    }
+</style>
+
+<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+<!--[if lt IE 9]>
+<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+<![endif]-->
+</head>
+
+<body class="skin-blue fixed-layout">
+<!-- ============================================================== -->
+<!-- Preloader - style you can find in spinners.css -->
+<!-- ============================================================== -->
+<div class="preloader">
+    <div class="loader">
+        <div class="loader__figure"></div>
+        <p class="loader__label">CRM</p>
+    </div>
+</div>
+<!-- ============================================================== -->
+<!-- Main wrapper - style you can find in pages.scss -->
+<!-- ============================================================== -->
+<div id="main-wrapper">
+    <!-- ============================================================== -->
+    <!-- Topbar header - style you can find in pages.scss -->
+    <!-- ============================================================== -->
+    <div th:insert="~{/general/header.html}"></div>
+    <!-- ============================================================== -->
+    <!-- End Topbar header -->
+    <!-- ============================================================== -->
+    <!-- ============================================================== -->
+    <!-- Left Sidebar - style you can find in sidebar.scss  -->
+    <!-- ============================================================== -->
+    <div th:insert="~{/general/left-sidebar.html}"></div>
+    <!-- ============================================================== -->
+    <!-- End Left Sidebar - style you can find in sidebar.scss  -->
+    <!-- ============================================================== -->
+    <!-- ============================================================== -->
+    <!-- Page wrapper  -->
+    <!-- ============================================================== -->
+    <div class="page-wrapper">
+        <!-- ============================================================== -->
+        <!-- Container fluid  -->
+        <!-- ============================================================== -->
+        <div class="container-fluid">
+            <!-- ============================================================== -->
+            <!-- Bread crumb and right sidebar toggle -->
+            <!-- ============================================================== -->
+            <div th:insert="~{/general/page-titles.html}"></div>
+            <!-- ============================================================== -->
+            <!-- End Bread crumb and right sidebar toggle -->
+            <!-- ============================================================== -->
+            <!-- ============================================================== -->
+            <!-- Start Page Content -->
+            <!-- ============================================================== -->
+            
+            <!-- Alert messages -->
+            <div class="row">
+                <div class="col-12">
+                    <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="fas fa-check-circle"></i> <span th:text="${success}"></span>
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="fas fa-exclamation-circle"></i> <span th:text="${error}"></span>
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- CSV Import/Export Section -->
+            <div class="row">
+                <!-- Import CSV Card -->
+                <div class="col-lg-6">
+                    <div class="card csv-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-file-import csv-icon text-primary"></i>
+                            <h4 class="card-title">Import CSV</h4>
+                            <p class="card-text">Upload a CSV file to import data into the system.</p>
+                            
+                            <form th:action="@{/csv/import}" method="post" enctype="multipart/form-data">
+                                <div class="form-group">
+                                    <label for="entityType">Select Data Type</label>
+                                    <select class="form-control" id="entityType" name="entityType" required>
+                                        <option value="">-- Select Data Type --</option>
+                                        <option value="customers">Customers</option>
+                                        <option value="leads">Leads</option>
+                                        <option value="tickets">Tickets</option>
+                                        <option value="contracts">Contracts</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="file-upload-wrapper">
+                                    <label class="custom-file-upload">
+                                        <i class="fas fa-cloud-upload-alt"></i> Choose CSV File
+                                        <input type="file" name="file" class="file-upload-input" accept=".csv" required onchange="updateFileName(this)">
+                                    </label>
+                                    <div id="selectedFile" class="selected-file">No file selected</div>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary btn-block">
+                                    <i class="fas fa-upload"></i> Import Data
+                                </button>
+                            </form>
+                            
+                            <div class="mt-4">
+                                <h5>Import Guidelines</h5>
+                                <ul class="text-left">
+                                    <li>File must be in CSV format</li>
+                                    <li>First row should contain column headers</li>
+                                    <li>Make sure all required fields are included</li>
+                                    <li>Maximum file size: 10MB</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Export CSV Card -->
+                <div class="col-lg-6">
+                    <div class="card csv-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-file-export csv-icon text-success"></i>
+                            <h4 class="card-title">Export CSV</h4>
+                            <p class="card-text">Download your data in CSV format for external use.</p>
+                            
+                            <div class="list-group">
+                                <a th:href="@{/csv/export/customers}" class="list-group-item list-group-item-action">
+                                    <i class="fas fa-users"></i> Export Customers
+                                    <span class="float-right"><i class="fas fa-download"></i></span>
+                                </a>
+                                <a th:href="@{/csv/export/leads}" class="list-group-item list-group-item-action">
+                                    <i class="fas fa-pencil-alt"></i> Export Leads
+                                    <span class="float-right"><i class="fas fa-download"></i></span>
+                                </a>
+                                <a th:href="@{/csv/export/tickets}" class="list-group-item list-group-item-action">
+                                    <i class="fas fa-ticket-alt"></i> Export Tickets
+                                    <span class="float-right"><i class="fas fa-download"></i></span>
+                                </a>
+                                <a th:href="@{/csv/export/contracts}" class="list-group-item list-group-item-action">
+                                    <i class="fas fa-file-contract"></i> Export Contracts
+                                    <span class="float-right"><i class="fas fa-download"></i></span>
+                                </a>
+                            </div>
+                            
+                            <div class="mt-4">
+                                <h5>Export Information</h5>
+                                <ul class="text-left">
+                                    <li>Exports include all accessible data</li>
+                                    <li>Files are generated in CSV format</li>
+                                    <li>Column headers are included</li>
+                                    <li>Date format: YYYY-MM-DD</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Data Deletion Section -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <h4 class="card-title">Data Deletion</h4>
+                            <p class="card-text text-danger">Warning: This operation will permanently delete data from the selected table. This action cannot be undone.</p>
+                            
+                            <form th:action="@{/csv/delete-data}" method="post" onsubmit="return confirmDeletion()">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="tableToDelete">Select Table</label>
+                                            <select class="form-control" id="tableToDelete" name="tableToDelete" required>
+                                                <option value="">-- Select Table --</option>
+                                                <option value="customer">Customers</option>
+                                                <option value="trigger_lead">Leads</option>
+                                                <option value="trigger_ticket">Tickets</option>
+                                                <option value="trigger_contract">Contracts</option>
+                                                <option value="email_template">Email Templates</option>
+                                                <option value="google_drive_file">Google Drive Files</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="confirmationText">Type "DELETE" to confirm</label>
+                                            <input type="text" class="form-control" id="confirmationText" name="confirmationText" required 
+                                                placeholder="Type DELETE in uppercase to confirm">
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <div class="custom-control custom-checkbox">
+                                        <input type="checkbox" class="custom-control-input" id="confirmDeletion" name="confirmDeletion" required>
+                                        <label class="custom-control-label" for="confirmDeletion">
+                                            I understand that this action will permanently delete all data from the selected table
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="fas fa-trash-alt"></i> Delete All Data
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- ============================================================== -->
+            <!-- End Page Content -->
+            <!-- ============================================================== -->
+            <!-- ============================================================== -->
+            <!-- Right sidebar -->
+            <!-- ============================================================== -->
+            <!-- .right-sidebar -->
+            <div th:insert="~{/general/right-sidebar.html}"></div>
+            <!-- ============================================================== -->
+            <!-- End Right sidebar -->
+            <!-- ============================================================== -->
+        </div>
+        <!-- ============================================================== -->
+        <!-- End Container fluid  -->
+        <!-- ============================================================== -->
+    </div>
+    <!-- ============================================================== -->
+    <!-- End Page wrapper  -->
+    <!-- ============================================================== -->
+    <!-- ============================================================== -->
+    <!-- footer -->
+    <!-- ============================================================== -->
+    <div th:insert="~{/general/footer.html}"></div>
+    <!-- ============================================================== -->
+    <!-- End footer -->
+    <!-- ============================================================== -->
+</div>
+<!-- ============================================================== -->
+<!-- End Wrapper -->
+<!-- ============================================================== -->
+<!-- ============================================================== -->
+<!-- All Jquery -->
+<!-- ============================================================== -->
+<script th:inline="javascript">
+    var home = /*[[${home}]]*/ null;
+</script>
+<script th:src="@{/js/library/jquery-3.2.1.min.js}" type="text/javascript">></script>
+<!-- Bootstrap tether Core JavaScript -->
+<script th:src="@{/js/library/popper.min.js}" type="text/javascript">></script>
+<script th:src="@{/js/library/bootstrap.min.js}" type="text/javascript">></script>
+<!-- slimscrollbar scrollbar JavaScript -->
+<script th:src="@{/js/library/perfect-scrollbar.jquery.min.js}" type="text/javascript">></script>
+<!--Wave Effects -->
+<script th:src="@{/js/library/waves.js}" type="text/javascript">></script>
+<!--Menu sidebar -->
+<script th:src="@{/js/library/sidebarmenu.js}" type="text/javascript">></script>
+<!--stickey kit -->
+<script th:src="@{/js/library/sticky-kit.min.js}"></script>
+<script th:src="@{/js/library/jquery.sparkline.min.js}" type="text/javascript">></script>
+<!--Custom JavaScript -->
+<script th:src="@{/js/library/custom.min.js}" type="text/javascript">></script>
+<script th:src="@{/js/library/jquery.toast.js}"></script>
+<script th:src="@{/js/library/toastr.js}"></script>
+<!-- Editable -->
+<script th:src="@{/js/library/jquery.dataTables.min.js}"></script>
+<script th:src="@{/js/library/dataTables.responsive.min.js}"></script>
+
+<!-- Custom JavaScript for this page -->
+<script>
+    function updateFileName(input) {
+        const fileName = input.files[0] ? input.files[0].name : 'No file selected';
+        document.getElementById('selectedFile').textContent = fileName;
+    }
+    
+    // Auto-dismiss alerts after 5 seconds
+    $(document).ready(function() {
+        setTimeout(function() {
+            $('.alert').alert('close');
+        }, 5000);
+    });
+    
+    // Initialize DataTable for any tables that might be added later
+    $('#csv-table').DataTable({
+        responsive: true
+    });
+    function confirmDeletion() {
+        const tableToDelete = document.getElementById('tableToDelete').value;
+        const confirmationText = document.getElementById('confirmationText').value;
+        
+        if (confirmationText !== 'DELETE') {
+            alert('Please type "DELETE" in uppercase to confirm data deletion');
+            return false;
+        }
+        
+        return confirm(`WARNING: You are about to delete ALL data from the ${tableToDelete} table. This action CANNOT be undone. Are you absolutely sure you want to proceed?`);
+    }
+    
+</script>

@@ -33,19 +33,41 @@ public class TimeDateUtil {
 
     public static Map<String, String> extractDateTime(String dateTime) {
         Map<String, String> dateTimeParts = new HashMap<>();
-        DateTimeFormatter formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
-        ZonedDateTime zonedDateTime = ZonedDateTime.parse(dateTime, formatter);
-
-        LocalDateTime localDateTime = zonedDateTime.toLocalDateTime();
-
-        String date = localDateTime.toLocalDate().toString();
-        String time = localDateTime.toLocalTime().toString();
-        String timeZone = zonedDateTime.getZone().toString();
-
-        dateTimeParts.put("date", date);
-        dateTimeParts.put("time", time);
-        dateTimeParts.put("timeZone", timeZone);
-
+        
+        // Vérifier si dateTime est null ou vide
+        if (dateTime == null || dateTime.isEmpty()) {
+            // Retourner une map avec des valeurs par défaut ou null
+            dateTimeParts.put("date", null);
+            dateTimeParts.put("time", null);
+            dateTimeParts.put("timeZone", null);
+            return dateTimeParts;
+        }
+        
+        try {
+            DateTimeFormatter formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
+            ZonedDateTime zonedDateTime = ZonedDateTime.parse(dateTime, formatter);
+            
+            LocalDateTime localDateTime = zonedDateTime.toLocalDateTime();
+            
+            String date = localDateTime.toLocalDate().toString();
+            String time = localDateTime.toLocalTime().toString();
+            String timeZone = zonedDateTime.getZone().toString();
+            
+            dateTimeParts.put("date", date);
+            dateTimeParts.put("time", time);
+            dateTimeParts.put("timeZone", timeZone);
+        } catch (Exception e) {
+            // Log l'erreur
+            System.err.println("Erreur lors du parsing de la date: " + dateTime);
+            e.printStackTrace();
+            
+            // Retourner une map avec des valeurs par défaut ou null
+            dateTimeParts.put("date", null);
+            dateTimeParts.put("time", null);
+            dateTimeParts.put("timeZone", null);
+        }
+        
         return dateTimeParts;
     }
+
 }
