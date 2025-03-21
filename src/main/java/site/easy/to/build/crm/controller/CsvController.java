@@ -14,6 +14,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import site.easy.to.build.crm.util.AuthorizationUtil;
 import site.easy.to.build.crm.util.CsvHelper;
 import site.easy.to.build.crm.service.customer.CustomerService;
+import site.easy.to.build.crm.service.database.DatabaseCleanupService;
 import site.easy.to.build.crm.service.lead.LeadService;
 import site.easy.to.build.crm.service.ticket.TicketService;
 import site.easy.to.build.crm.service.contract.ContractService;
@@ -240,6 +241,27 @@ public class CsvController {
                     "Error deleting data: " + e.getMessage());
         }
 
+        return "redirect:/csv";
+    }
+    // Ajouter cette méthode à votre CsvController existant
+
+    @Autowired
+    private DatabaseCleanupService databaseCleanupService;
+
+    @PostMapping("/cleanup-database")
+    public String cleanupDatabase(RedirectAttributes redirectAttributes, Authentication authentication) {
+        // Vérifier que seul un manager peut effectuer cette opération
+        if (!AuthorizationUtil.hasRole(authentication, "ROLE_MANAGER")) {
+            return "redirect:/access-denied";
+        }
+        
+        try {
+            databaseCleanupService.cleanupDatabase();
+            redirectAttributes.addFlashAttribute("success", "La base de données a été nettoyée avec succès.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Erreur lors du nettoyage de la base de données: " + e.getMessage());
+        }
+        
         return "redirect:/csv";
     }
 }

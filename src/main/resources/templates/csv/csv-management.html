@@ -275,6 +275,26 @@
                     </div>
                 </div>
             </div>
+            <!-- Ajouter ce bloc à votre page csv-management.html -->
+
+            <div class="card mt-4">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">Nettoyage de la base de données</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <strong>Attention!</strong> Cette action va supprimer toutes les données de la base de données, à l'exception des utilisateurs, des rôles et des informations de connexion. Cette action est irréversible.
+                    </div>
+                    
+                    <form action="/csv/cleanup-database" method="post" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer toutes les données? Cette action est irréversible.');">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash-alt"></i> Nettoyer la base de données
+                        </button>
+                    </form>
+                </div>
+            </div>
+
             <!-- ============================================================== -->
             <!-- End Page Content -->
             <!-- ============================================================== -->
