@@ -6,11 +6,10 @@
 <meta name="_csrf_header" content="${_csrf.headerName}"/>
 
 <!-- Editable CSS -->
-<link rel="stylesheet" type="text/css"
-      th:href="@{/css/dataTables.bootstrap4.css}">
-<link rel="stylesheet" type="text/css"
-      th:href="@{/css/responsive.dataTables.min.css}">
-
+<link rel="stylesheet" type="text/css" th:href="@{/css/dataTables.bootstrap4.css}">
+<link rel="stylesheet" type="text/css" th:href="@{/css/responsive.dataTables.min.css}">
+<link th:href="@{/css/login-register-lock.css}" rel="stylesheet">
+<link th:href="@{/css/jquery.toast.css}" rel="stylesheet">
 <!-- Custom CSS -->
 <link th:href="@{/css/style.min.css}" rel="stylesheet">
 <!-- page css -->
@@ -63,55 +62,65 @@
             <!-- ============================================================== -->
             <!-- Bread crumb and right sidebar toggle -->
             <!-- ============================================================== -->
-            <div th:insert="~{/general/page-titles.html}"></div>
+            <div class="row page-titles">
+                <div class="col-md-5 align-self-center">
+                    <h4 class="text-themecolor">Créer un budget</h4>
+                </div>
+                <div class="col-md-7 align-self-center text-right">
+                    <div class="d-flex justify-content-end align-items-center">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a th:href="${home}">Accueil</a></li>
+                            <li class="breadcrumb-item"><a th:href="${home + 'budget/list'}">Budgets</a></li>
+                            <li class="breadcrumb-item active">Créer un budget</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
             <!-- ============================================================== -->
             <!-- End Bread crumb and right sidebar toggle -->
             <!-- ============================================================== -->
+            
+            <!-- Messages d'alerte -->
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <span th:text="${success}"></span>
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <span th:text="${error}"></span>
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            
             <!-- ============================================================== -->
             <!-- Start Page Content -->
             <!-- ============================================================== -->
             <div class="row">
-                <div class="col-lg-12">
+                <div class="col-12">
                     <div class="card">
                         <div class="card-body">
-                            <h4 class="card-title">Leads</h4>
-                            <div class="table-responsive m-t-40">
-                                <table id="config-table" class="table display table-bordered table-striped no-wrap">
-                                    <thead>
-                                    <tr>
-                                        <th>#</th>
-                                        <th>Lead</th>
-                                        <th>phone</th>
-                                        <th>Status</th>
-                                        <th>Customer</th>
-                                        <th>Assigned Employee</th>
-                                        <th>Show</th>
-                                        <th>Edit</th>
-                                        <th>Delete</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    <tr th:if="${leads != null}" th:each="lead : ${leads}">
-                                        <td th:text="${lead.leadId}"></td>
-                                        <td th:text="${lead.name}"></td>
-                                        <td th:text="${lead.phone}"></td>
-                                        <td th:text="${lead.status}"></td>
-                                        <td th:text="${lead.customer.name}"></td>
-                                        <!-- À la ligne 100, remplacez: -->
-                                        <td th:text="${lead.employee != null ? lead.employee.username : 'Non assigné'}">username</td>
-                                        <td><a th:href="${home + 'employee/lead/show/' + lead.leadId}"><i class="fas fa-eye"></i></a></td>
-                                        <td><a th:href="${home + 'employee/lead/update/' + lead.leadId}"><i class="fas fa-edit"></i></a></td>
-                                        <td>
-                                            <form th:action="${home + 'employee/lead/delete/' + lead.leadId}" method="post">
-                                                <button type="submit" class="btn btn-primary">
-                                                    <i class="mdi mdi-delete"></i>
-                                                </button>
-                                            </form>
-                                        </td>
-                                    </tr>
-                                    </tbody>
-                                </table>
-                            </div>
+                            <h4 class="card-title">Créer un nouveau budget</h4>
+                            <form th:action="${home + 'employee/budget/save'}" method="post">
+                                <div class="form-group">
+                                    <label for="customerId">Client</label>
+                                    <select class="form-control" id="customerId" name="customerId" required>
+                                        <option value="">-- Sélectionner un client --</option>
+                                        <option th:each="customer : ${customers}"
+                                                th:value="${customer.customerId}"
+                                                th:text="${customer.name + ' (' + customer.email + ')'}">
+                                        </option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="amount">Montant (€)</label>
+                                    <input type="number" class="form-control" id="amount" name="montant"
+                                           step="0.01" min="0" required placeholder="Entrez le montant du budget">
+                                </div>
+                                <button type="submit" class="btn btn-success">Créer le budget</button>
+                                <a th:href="${home + '/list'}" class="btn btn-secondary">Annuler</a>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -119,6 +128,7 @@
             <!-- ============================================================== -->
             <!-- End Page Content -->
             <!-- ============================================================== -->
+            
             <!-- ============================================================== -->
             <!-- Right sidebar -->
             <!-- ============================================================== -->
@@ -166,13 +176,15 @@
 <script th:src="@{/js/library/sticky-kit.min.js}"></script>
 <script th:src="@{/js/library/jquery.sparkline.min.js}" type="text/javascript">></script>
 <!--Custom JavaScript -->
+
 <script th:src="@{/js/library/custom.min.js}" type="text/javascript">></script>
-<!-- Editable -->
-<script th:src="@{/js/library/jquery.dataTables.min.js}"></script>
-<script th:src="@{/js/library/dataTables.responsive.min.js}"></script>
+<script th:src="@{/js/library/jquery.toast.js}"></script>
+<script th:src="@{/js/library/toastr.js}"></script>
+<!-- Form validation -->
 <script>
-    $('#config-table').DataTable({
-        responsive: true
+    // Date validation script to ensure end date is after start date
+    document.getElementById('startDate').addEventListener('change', function() {
+        document.getElementById('endDate').min = this.value;
     });
 </script>
 </body>

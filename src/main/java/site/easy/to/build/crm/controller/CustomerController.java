@@ -27,8 +27,10 @@ import site.easy.to.build.crm.util.AuthenticationUtils;
 import site.easy.to.build.crm.util.AuthorizationUtil;
 import site.easy.to.build.crm.util.EmailTokenUtils;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/employee/customer")
@@ -60,14 +62,17 @@ public class CustomerController {
     }
 
     @GetMapping("/manager/all-customers")
-    public String getAllCustomers(Model model){
-        List<Customer> customers;
-        try {
-            customers = customerService.findAll();
-        } catch (Exception e){
-            return "error/500";
+        public String showAllCustomers(Model model, Authentication authentication) {
+        // Vérifier si l'utilisateur a les droits d'accès
+        if (!AuthorizationUtil.hasRole(authentication, "ROLE_MANAGER")) {
+            return "redirect:/access-denied";
         }
-        model.addAttribute("customers",customers);
+        List<Customer> customers = customerService.findAll();
+        Map<Integer, BigDecimal> totalBudgets = customerService.getAllCustomersTotalBudget();
+        
+        model.addAttribute("customers", customers);
+        model.addAttribute("totalBudgets", totalBudgets);
+        
         return "customer/all-customers";
     }
 
@@ -75,12 +80,18 @@ public class CustomerController {
     public String getEmployeeCustomer(Model model, Authentication authentication){
         List<Customer> customers;
 
+        if (!AuthorizationUtil.hasRole(authentication, "ROLE_MANAGER")) {
+            return "redirect:/access-denied";
+        }
+
         int userId = authenticationUtils.getLoggedInUserId(authentication);
         if(userId == -1) {
             return "error/not-found";
         }
         customers = customerService.findByUserId(userId);
+        Map<Integer, BigDecimal> totalBudgets = customerService.getAllCustomersTotalBudget();
         model.addAttribute("customers",customers);
+        model.addAttribute("totalBudgets", totalBudgets);
         return "customer/all-customers";
     }
 

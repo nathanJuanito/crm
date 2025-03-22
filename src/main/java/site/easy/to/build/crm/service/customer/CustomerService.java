@@ -3,7 +3,9 @@ package site.easy.to.build.crm.service.customer;
 import org.checkerframework.checker.units.qual.C;
 import site.easy.to.build.crm.entity.Customer;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 public interface CustomerService {
 
@@ -22,5 +24,10 @@ public interface CustomerService {
     public List<Customer> getRecentCustomers(int userId, int limit);
 
     long countByUserId(int userId);
+
+    // Modifiez ces méthodes pour utiliser int au lieu de Long
+    BigDecimal getCustomerTotalBudget(int customerId);
+    Map<Integer, BigDecimal> getAllCustomersTotalBudget();
+
 
 }

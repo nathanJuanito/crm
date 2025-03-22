@@ -6,7 +6,10 @@ import org.springframework.stereotype.Service;
 import site.easy.to.build.crm.repository.CustomerRepository;
 import site.easy.to.build.crm.entity.Customer;
 
+import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class CustomerServiceImpl implements CustomerService {
@@ -57,4 +60,25 @@ public class CustomerServiceImpl implements CustomerService {
     public long countByUserId(int userId) {
         return customerRepository.countByUserId(userId);
     }
+
+    @Override
+    public BigDecimal getCustomerTotalBudget(int customerId) {
+        BigDecimal total = customerRepository.getTotalBudgetByCustomerId(customerId);
+        return total != null ? total : BigDecimal.ZERO;
+    }
+
+    @Override
+    public Map<Integer, BigDecimal> getAllCustomersTotalBudget() {
+        List<Object[]> results = customerRepository.getAllCustomersTotalBudget();
+        Map<Integer, BigDecimal> totalBudgets = new HashMap<>();
+        
+        for (Object[] result : results) {
+            Integer customerId = (Integer) result[0];
+            BigDecimal total = (BigDecimal) result[1];
+            totalBudgets.put(customerId, total != null ? total : BigDecimal.ZERO);
+        }
+        
+        return totalBudgets;
+    }
+
 }
