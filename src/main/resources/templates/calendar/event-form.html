@@ -73,6 +73,15 @@
             <!-- ============================================================== -->
             <!-- Start Page Content -->
             <!-- ============================================================== -->
+            
+            <!-- Alerte budgétaire -->
+            <div class="alert alert-warning alert-dismissible fade show" role="alert" th:if="${alertMessage != null}">
+                <strong>Alerte budgétaire!</strong> <span th:text="${alertMessage}"></span>
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            
             <div class="row">
                 <div class="col-lg-12">
                     <div class="card">
@@ -268,32 +277,4 @@
     jQuery('#date-range').datepicker({
         toggleActive: true
     });
-    jQuery('#datepicker-inline').datepicker({
-        todayHighlight: true
-    });
-
-    // -------------------------------
-    var input = document.querySelector('#email-input');
-var tagify = new Tagify(input, {
-<!--    enforceWhitelist: true,-->
-    whitelist: [], // Specify a predefined list of email suggestions if desired
-    maxTags: Infinity, // Set the maximum number of email tags
-    backspace: 'edit', // Allow editing of tags using the backspace key
-    placeholder: 'Enter emails...', // Placeholder text for the input field
-    dropdown: {
-        enabled: 0, // Disable the email suggestions dropdown
-    },
-});
-    // Update the email input value when tags are added or removed
-    tagify.on('add', e => updateInputValue());
-    tagify.on('remove', e => updateInputValue());
-
-function updateInputValue() {
-    var emails = tagify.value.map(tag => tag.value);
-    document.getElementById('emails').value = emails.join(',');
-}
-
-</script>
-</body>
-
-</html>
+    jQuery('#datepicker-inline').datep
