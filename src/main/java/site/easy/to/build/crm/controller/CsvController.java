@@ -22,6 +22,8 @@ import site.easy.to.build.crm.entity.Customer;
 import site.easy.to.build.crm.entity.Lead;
 import site.easy.to.build.crm.entity.Ticket;
 import site.easy.to.build.crm.entity.Contract;
+import site.easy.to.build.crm.service.data.DataGenerationService;
+
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -35,6 +37,8 @@ import java.util.List;
 @Controller
 @RequestMapping("/csv")
 public class CsvController {
+    @Autowired
+    private DataGenerationService dataGenerationService;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -260,6 +264,77 @@ public class CsvController {
             redirectAttributes.addFlashAttribute("success", "La base de données a été nettoyée avec succès.");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Erreur lors du nettoyage de la base de données: " + e.getMessage());
+        }
+        
+        return "redirect:/csv";
+    }
+    
+    @PostMapping("/generate-data")
+    @Transactional
+    public String generateData(@RequestParam("tableToGenerate") String tableToGenerate,
+                            @RequestParam("recordCount") int recordCount,
+                            @RequestParam(value = "confirmGeneration", required = false) boolean confirmGeneration,
+                            RedirectAttributes redirectAttributes,
+                            Authentication authentication) {
+        
+        // Vérifier si l'utilisateur a les droits d'accès
+        if (!AuthorizationUtil.hasRole(authentication, "ROLE_MANAGER") &&
+            !AuthorizationUtil.hasRole(authentication, "ROLE_EMPLOYEE")) {
+            return "redirect:/access-denied";
+        }
+        
+        if (!confirmGeneration) {
+            redirectAttributes.addFlashAttribute("error", "Veuillez confirmer la génération de données");
+            return "redirect:/csv";
+        }
+        
+        // Limiter le nombre d'enregistrements à générer
+        if (recordCount <= 0 || recordCount > 1000) {
+            redirectAttributes.addFlashAttribute("error", "Le nombre d'enregistrements doit être compris entre 1 et 1000");
+            return "redirect:/csv";
+        }
+        
+        try {
+            int generatedCount = 0;
+            
+            switch (tableToGenerate) {
+                case "customers":
+                    generatedCount = dataGenerationService.generateCustomers(recordCount);
+                    redirectAttributes.addFlashAttribute("success", 
+                        generatedCount + " clients générés avec succès");
+                    break;
+                    
+                case "leads":
+                    generatedCount = dataGenerationService.generateLeads(recordCount);
+                    redirectAttributes.addFlashAttribute("success", 
+                        generatedCount + " prospects générés avec succès");
+                    break;
+                    
+                case "tickets":
+                    generatedCount = dataGenerationService.generateTickets(recordCount);
+                    redirectAttributes.addFlashAttribute("success", 
+                        generatedCount + " tickets générés avec succès");
+                    break;
+                    
+                case "contracts":
+                    generatedCount = dataGenerationService.generateContracts(recordCount);
+                    redirectAttributes.addFlashAttribute("success", 
+                        generatedCount + " contrats générés avec succès");
+                    break;
+                    
+                case "email_templates":
+                    generatedCount = dataGenerationService.generateEmailTemplates(recordCount);
+                    redirectAttributes.addFlashAttribute("success", 
+                        generatedCount + " modèles d'email générés avec succès");
+                    break;
+                    
+                default:
+                    redirectAttributes.addFlashAttribute("error", "Type de table non valide pour la génération de données");
+                    return "redirect:/csv";
+            }
+            
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Erreur lors de la génération des données: " + e.getMessage());
         }
         
         return "redirect:/csv";

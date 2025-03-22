@@ -294,6 +294,71 @@
                     </form>
                 </div>
             </div>
+            <!-- Data Generation Section -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card csv-card">
+                        <div class="card-body">
+                            <div class="text-center mb-4">
+                                <i class="fas fa-database csv-icon text-info"></i>
+                                <h4 class="card-title">Generate Test Data</h4>
+                                <p class="card-text">Generate sample data for testing and development purposes.</p>
+                            </div>
+                            
+                            <form th:action="@{/csv/generate-data}" method="post">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="tableToGenerate">Select Table</label>
+                                            <select class="form-control" id="tableToGenerate" name="tableToGenerate" required>
+                                                <option value="">-- Select Table --</option>
+                                                <option value="customers">Customers</option>
+                                                <option value="leads">Leads</option>
+                                                <option value="tickets">Tickets</option>
+                                                <option value="contracts">Contracts</option>
+                                                <option value="email_templates">Email Templates</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="recordCount">Number of Records</label>
+                                            <input type="number" class="form-control" id="recordCount" name="recordCount" 
+                                                min="1" max="1000" value="10" required>
+                                            <small class="form-text text-muted">Maximum 1000 records per generation</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <div class="custom-control custom-checkbox">
+                                        <input type="checkbox" class="custom-control-input" id="confirmGeneration" name="confirmGeneration" required>
+                                        <label class="custom-control-label" for="confirmGeneration">
+                                            I understand that this will generate random test data in the selected table
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="text-center">
+                                    <button type="submit" class="btn btn-info">
+                                        <i class="fas fa-magic"></i> Generate Data
+                                    </button>
+                                </div>
+                            </form>
+                            
+                            <div class="mt-4">
+                                <h5>Data Generation Information</h5>
+                                <ul>
+                                    <li>Generated data is for testing purposes only</li>
+                                    <li>All data is randomly generated with realistic values</li>
+                                    <li>This operation does not affect existing data</li>
+                                    <li>For large datasets, the generation process may take some time</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <!-- ============================================================== -->
             <!-- End Page Content -->
