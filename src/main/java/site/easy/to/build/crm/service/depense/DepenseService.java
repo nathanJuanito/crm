@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.springframework.data.repository.query.Param;
+
 public interface DepenseService {
     
     // Opérations CRUD de base
@@ -40,4 +42,14 @@ public interface DepenseService {
     
     // Obtenir le total des dépenses pour tous les clients
     Map<Integer, BigDecimal> getTotalDepensesForAllCustomers();
+
+    int deleteByTicketId(Integer ticketId);
+
+    int updateMontant(Integer ticketId, BigDecimal montant);
+
+    int deleteByLeadId(Integer leadId);
+
+    int updateLeadMontant(Integer leadId, BigDecimal montant);
+
+    BigDecimal getTotalAmountByLeadId(Integer leadId);
 }

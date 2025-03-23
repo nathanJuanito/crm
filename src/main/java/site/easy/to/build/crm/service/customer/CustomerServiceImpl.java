@@ -1,9 +1,11 @@
 package site.easy.to.build.crm.service.customer;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import site.easy.to.build.crm.repository.CustomerRepository;
+import site.easy.to.build.crm.repository.DepenseRepository;
 import site.easy.to.build.crm.entity.Customer;
 
 import java.math.BigDecimal;
@@ -15,9 +17,12 @@ import java.util.Map;
 public class CustomerServiceImpl implements CustomerService {
 
     private final CustomerRepository customerRepository;
+    private final DepenseRepository depenseRepository;
 
-    public CustomerServiceImpl(CustomerRepository customerRepository) {
+    @Autowired
+    public CustomerServiceImpl(CustomerRepository customerRepository, DepenseRepository depenseRepository) {
         this.customerRepository = customerRepository;
+        this.depenseRepository = depenseRepository;
     }
 
     @Override
@@ -71,14 +76,27 @@ public class CustomerServiceImpl implements CustomerService {
     public Map<Integer, BigDecimal> getAllCustomersTotalBudget() {
         List<Object[]> results = customerRepository.getAllCustomersTotalBudget();
         Map<Integer, BigDecimal> totalBudgets = new HashMap<>();
-        
+       
         for (Object[] result : results) {
             Integer customerId = (Integer) result[0];
             BigDecimal total = (BigDecimal) result[1];
             totalBudgets.put(customerId, total != null ? total : BigDecimal.ZERO);
         }
-        
+       
         return totalBudgets;
     }
 
+    @Override
+    public List<Customer> findAllWithBudgetAndDepenses() {
+        List<Customer> customers = customerRepository.findAll();
+       
+        // Pour chaque client, calculer et définir le budget total
+        for (Customer customer : customers) {
+            BigDecimal totalBudget = getCustomerTotalBudget(customer.getCustomerId());
+            BigDecimal totalDepenses = depenseRepository.getTotalDepensesByCustomerId(customer.getCustomerId());
+            customer.setBudget(totalBudget);
+            customer.setDepenses(totalDepenses);
+        }
+        return customers;
+    }
 }

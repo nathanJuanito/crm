@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import org.hibernate.mapping.ToOne;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -47,6 +48,17 @@ public class Ticket {
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    @Transient // Ce champ n'est pas persisté en base de données
+    private BigDecimal montant;
+
+    public BigDecimal getMontant() {
+        return montant;
+    }
+
+    public void setMontant(BigDecimal montant) {
+        this.montant = montant;
+    }
 
     public Ticket() {
     }

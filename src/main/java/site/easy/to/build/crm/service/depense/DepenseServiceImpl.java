@@ -108,4 +108,30 @@ public class DepenseServiceImpl implements DepenseService {
         
         return result;
     }
+
+    @Override
+    public int deleteByTicketId(Integer ticketId) {
+        return depenseRepository.deleteByTicketId(ticketId);
+    }
+
+    @Override
+    public int updateMontant(Integer ticketId, BigDecimal montant) {
+        return depenseRepository.updateMontant(ticketId, montant);
+    }
+
+    @Override
+    public int deleteByLeadId(Integer leadId) {
+        return depenseRepository.deleteByLeadId(leadId);
+    }
+
+    @Override
+    public int updateLeadMontant(Integer leadId, BigDecimal montant) {
+        return depenseRepository.updateLeadMontant(leadId, montant);
+    }
+
+    @Override
+    public BigDecimal getTotalAmountByLeadId(Integer leadId) {
+        return depenseRepository.getTotalAmountByLeadId(leadId);
+    }
+
 }

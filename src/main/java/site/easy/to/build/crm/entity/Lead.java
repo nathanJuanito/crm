@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -60,7 +61,18 @@ public class Lead {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    @Transient // Ce champ n'est pas persisté en base de données
+    private BigDecimal montant;
+
+    public BigDecimal getMontant() {
+        return montant;
+    }
+
+    public void setMontant(BigDecimal montant) {
+        this.montant = montant;
+    }
     public Lead() {
+    
     }
 
     public Lead(String name, String status, String phone, String meetingId, Boolean googleDrive, String googleDriveFolderId,

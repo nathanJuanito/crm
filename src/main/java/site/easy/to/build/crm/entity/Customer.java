@@ -8,6 +8,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.groups.Default;
 import site.easy.to.build.crm.customValidations.customer.UniqueEmail;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -73,6 +74,28 @@ public class Customer {
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    @Transient
+    private BigDecimal budget;
+
+    @Transient
+    private BigDecimal depenses;
+
+    public BigDecimal getDepenses() {
+        return depenses;
+    }
+
+    public void setDepenses(BigDecimal depenses) {
+        this.depenses = depenses;
+    }
+
+    public BigDecimal getBudget() {
+        return budget;
+    }
+
+    public void setBudget(BigDecimal budget) {
+        this.budget = budget;
+    }
 
     public Customer() {
     }

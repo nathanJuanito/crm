@@ -23,6 +23,8 @@ public interface CustomerService {
 
     public List<Customer> getRecentCustomers(int userId, int limit);
 
+    List<Customer> findAllWithBudgetAndDepenses();
+
     long countByUserId(int userId);
 
     // Modifiez ces méthodes pour utiliser int au lieu de Long

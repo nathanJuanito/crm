@@ -339,7 +339,7 @@ public class TicketController {
         return "redirect:/employee/ticket/assigned-tickets";
     }
 
-
+    
 
     @GetMapping("/update-ticket/{id}")
     public String showTicketUpdatingForm(Model model, @PathVariable("id") int id, Authentication authentication) {
