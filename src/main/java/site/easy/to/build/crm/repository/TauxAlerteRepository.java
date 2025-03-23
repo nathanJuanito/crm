@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 @Repository
 public interface TauxAlerteRepository extends JpaRepository<TauxAlerte, Integer> {
     
-    // Récupérer le dernier taux d'alerte configuré
-    @Query("SELECT t.tauxAlerte FROM TauxAlerte t ORDER BY t.id DESC")
+    @Query("SELECT t.tauxAlerte FROM TauxAlerte t ORDER BY t.id DESC LIMIT 1")  // Certaines implémentations JPA
     BigDecimal findLatestTauxAlerte();
+
 }
