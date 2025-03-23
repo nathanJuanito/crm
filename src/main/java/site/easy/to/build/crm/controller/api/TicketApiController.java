@@ -41,6 +41,8 @@ public class TicketApiController {
     @GetMapping("/{id}")
     public ResponseEntity<Ticket> getTicketById(@PathVariable int id) {
         Ticket ticket = ticketService.findByTicketId(id);
+        ticket.setMontant(depenseService.getTotalAmountByTicketId(id));
+        
         if (ticket == null) {
             return ResponseEntity.notFound().build();
         }

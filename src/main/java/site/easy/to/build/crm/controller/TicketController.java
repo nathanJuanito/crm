@@ -297,7 +297,7 @@ public class TicketController {
                 System.out.println("seuilAlerte: " + seuilAlerte);
         
                 // Vérifier si le seuil est dépassé
-                boolean seuilDepasse = newTotalDepenses.compareTo(seuilAlerte) > 0;
+                boolean seuilDepasse = newTotalDepenses.compareTo(seuilAlerte) >= 0;
                 System.out.println("Le seuil est-il dépassé? " + seuilDepasse);
             
                 if (seuilDepasse) {

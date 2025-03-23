@@ -134,4 +134,9 @@ public class DepenseServiceImpl implements DepenseService {
         return depenseRepository.getTotalAmountByLeadId(leadId);
     }
 
+    @Override
+    public BigDecimal getTotalAmountByTicketId(Integer ticketId) {
+        return depenseRepository.getTotalAmountByTicketId(ticketId);
+    }
+
 }

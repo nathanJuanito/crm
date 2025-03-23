@@ -52,4 +52,6 @@ public interface DepenseService {
     int updateLeadMontant(Integer leadId, BigDecimal montant);
 
     BigDecimal getTotalAmountByLeadId(Integer leadId);
+    
+    BigDecimal getTotalAmountByTicketId(Integer ticketId);
 }

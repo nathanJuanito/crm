@@ -43,6 +43,7 @@ public class LeadApiController {
     @GetMapping("/{id}")
     public ResponseEntity<Lead> getLeadById(@PathVariable int id) {
         Lead lead = leadService.findByLeadId(id);
+        lead.setMontant(depenseService.getTotalAmountByLeadId(id));
         if (lead == null) {
             return ResponseEntity.notFound().build();
         }

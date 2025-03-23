@@ -20,9 +20,7 @@ public class DatabaseCleanupService {
             "users",
             "oauth_users",
             "user_roles",
-            "user_profile",
-            "customer",
-            "customer_login_info"
+            "user_profile"
     );
     
     /**
