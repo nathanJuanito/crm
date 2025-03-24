@@ -15,8 +15,8 @@ CREATE TABLE taux_alerte(
 CREATE TABLE depenses(
    id INT AUTO_INCREMENT,
    montant DECIMAL(15,2)  ,
-   lead_id INT unsigned NOT NULL,
-   ticket_id INT unsigned NOT NULL,
+   lead_id INT unsigned,
+   ticket_id INT unsigned,
    PRIMARY KEY(id),
    FOREIGN KEY(lead_id) REFERENCES trigger_lead(lead_id),
    FOREIGN KEY(ticket_id) REFERENCES trigger_ticket(ticket_id)
