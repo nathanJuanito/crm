@@ -103,9 +103,21 @@ public class DataGenerationServiceImpl implements DataGenerationService {
                 if (!customerIds.isEmpty()) {
                     customerId = customerIds.get(random.nextInt(customerIds.size()));
                 }
+
+                Integer employeeId = getEmployeeUserId(); // Ou une autre méthode pour obtenir un user_id valide
+                if (employeeId == null) {
+                    logger.severe("Impossible de générer des clients: aucun employee trouvé");
+                    return 0;
+                }
+
+                Integer userId = getManagerUserId(); // Ou une autre méthode pour obtenir un user_id valide
+                if (userId == null) {
+                    logger.severe("Impossible de générer des clients: aucun utilisateur trouvé");
+                    return 0;
+                }
                 
-                String sql = "INSERT INTO trigger_lead (customer_id, name, phone, status, created_at) " +
-                             "VALUES (?, ?, ?, ?, ?)";
+                String sql = "INSERT INTO trigger_lead (customer_id, name, phone, status, created_at, employee_id, user_id) " +
+                             "VALUES (?, ?, ?, ?, ?, ?, ?)";
                 
                 entityManager.createNativeQuery(sql)
                     .setParameter(1, customerId)
@@ -113,6 +125,25 @@ public class DataGenerationServiceImpl implements DataGenerationService {
                     .setParameter(3, generatePhoneNumber())
                     .setParameter(4, getRandomElement(statuses))
                     .setParameter(5, LocalDateTime.now())
+                    .setParameter(6, employeeId)
+                    .setParameter(7, userId)
+                    .executeUpdate();
+
+                // Récupérer l'ID du lead qui vient d'être inséré
+                Object leadIdResult = entityManager.createNativeQuery("SELECT LAST_INSERT_ID()").getSingleResult();
+                int leadId = ((Number) leadIdResult).intValue();
+                
+                // Générer un montant aléatoire entre 100 et 5000
+                double montant = 100000 + (random.nextDouble() * 900000);
+                // Arrondir à 2 décimales
+                montant = Math.round(montant * 100.0) / 100.0;
+                
+                // Insérer la dépense correspondante
+                String depenseSql = "INSERT INTO depenses (montant, lead_id, ticket_id) VALUES (?, ?, NULL)";
+                
+                entityManager.createNativeQuery(depenseSql)
+                    .setParameter(1, montant)
+                    .setParameter(2, leadId)
                     .executeUpdate();
                 
                 generated++;
@@ -151,10 +182,16 @@ public class DataGenerationServiceImpl implements DataGenerationService {
                     logger.severe("Impossible de générer des clients: aucun utilisateur trouvé");
                     return 0;
                 }
+
+                Integer employeeId = getEmployeeUserId(); // Ou une autre méthode pour obtenir un user_id valide
+                if (employeeId == null) {
+                    logger.severe("Impossible de générer des clients: aucun employee trouvé");
+                    return 0;
+                }
                 
                 // Insérer le ticket
-                String ticketSql = "INSERT INTO trigger_ticket (subject, description, status, priority, customer_id, created_at,manager_id) " +
-                            "VALUES (?, ?, ?, ?, ?, ?, ?)";
+                String ticketSql = "INSERT INTO trigger_ticket (subject, description, status, priority, customer_id, created_at, manager_id, employee_id) " +
+                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
                 
                 entityManager.createNativeQuery(ticketSql)
                     .setParameter(1, "Ticket #" + UUID.randomUUID().toString().substring(0, 8))
@@ -164,6 +201,7 @@ public class DataGenerationServiceImpl implements DataGenerationService {
                     .setParameter(5, customerId)
                     .setParameter(6, LocalDateTime.now())
                     .setParameter(7, userId)
+                    .setParameter(8, employeeId)
                     .executeUpdate();
                 
                 // Récupérer l'ID du ticket qui vient d'être inséré
@@ -208,6 +246,11 @@ public class DataGenerationServiceImpl implements DataGenerationService {
         
         // Récupérer les leads existants
         List<Integer> leadIds = getLeadIds();
+        if (leadIds.isEmpty()) {
+            // Générer quelques leads si aucun n'existe
+            generateLeads(10);
+            leadIds = getLeadIds();
+        }
         
         for (int i = 0; i < count; i++) {
             try {
@@ -222,12 +265,19 @@ public class DataGenerationServiceImpl implements DataGenerationService {
                 if (!leadIds.isEmpty() && random.nextBoolean()) {
                     leadId = leadIds.get(random.nextInt(leadIds.size()));
                 }
+
+                Integer userId = getManagerUserId(); // Ou une autre méthode pour obtenir un user_id valide
+                if (userId == null) {
+                    logger.severe("Impossible de générer des clients: aucun utilisateur trouvé");
+                    return 0;
+                }
+
                 
                 LocalDate startDate = LocalDate.now().minusDays(random.nextInt(30));
                 LocalDate endDate = LocalDate.now().plusDays(30 + random.nextInt(335));
                 
-                String sql = "INSERT INTO trigger_contract (subject, description, status, start_date, end_date, amount, customer_id, lead_id, created_at) " +
-                             "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                String sql = "INSERT INTO trigger_contract (subject, description, status, start_date, end_date, amount, customer_id, lead_id, created_at, user_id) " +
+                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
                 
                 entityManager.createNativeQuery(sql)
                     .setParameter(1, "Contrat #" + UUID.randomUUID().toString().substring(0, 8))
@@ -239,6 +289,7 @@ public class DataGenerationServiceImpl implements DataGenerationService {
                     .setParameter(7, customerId)
                     .setParameter(8, leadId)
                     .setParameter(9, LocalDateTime.now())
+                    .setParameter(10, userId)
                     .executeUpdate();
                 
                 generated++;
@@ -250,6 +301,7 @@ public class DataGenerationServiceImpl implements DataGenerationService {
         
         return generated;
     }
+
     
     @Override
     @Transactional
@@ -388,6 +440,25 @@ public class DataGenerationServiceImpl implements DataGenerationService {
                 "JOIN user_roles ur ON u.id = ur.user_id " +
                 "JOIN roles r ON ur.role_id = r.id " +
                 "WHERE r.name = 'ROLE_MANAGER' LIMIT 1"
+            ).getSingleResult();
+            
+            if (result != null) {
+                userId = ((Number) result).intValue();
+            }
+        } catch (Exception e) {
+            logger.severe("Error retrieving manager user ID: " + e.getMessage());
+        }
+        return userId;
+    }
+
+    private Integer getEmployeeUserId() {
+        Integer userId = null;
+        try {
+            Object result = entityManager.createNativeQuery(
+                "SELECT u.id FROM users u " +
+                "JOIN user_roles ur ON u.id = ur.user_id " +
+                "JOIN roles r ON ur.role_id = r.id " +
+                "WHERE r.name = 'ROLE_EMPLOYEE' LIMIT 1"
             ).getSingleResult();
             
             if (result != null) {
