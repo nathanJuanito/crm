@@ -39,7 +39,12 @@ public class DataGenerationServiceImpl implements DataGenerationService {
     @Transactional
     public int generateCustomers(int count) {
         int generated = 0;
-        
+        Integer userId = getManagerUserId(); // Ou une autre méthode pour obtenir un user_id valide
+        if (userId == null) {
+            logger.severe("Impossible de générer des clients: aucun utilisateur trouvé");
+            return 0;
+        }
+
         for (int i = 0; i < count; i++) {
             try {
                 // Créer un CustomerLoginInfo pour chaque client dans une transaction séparée
@@ -50,8 +55,8 @@ public class DataGenerationServiceImpl implements DataGenerationService {
                 String lastName = getRandomElement(lastNames);
                 String fullName = firstName + " " + lastName;
                 
-                String sql = "INSERT INTO customer (name, phone, address, city, state, country, description, position, email, created_at, profile_id) " +
-                             "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                String sql = "INSERT INTO customer (name, phone, address, city, state, country, description, position, email, created_at, profile_id,user_id) " +
+                             "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)";
                 
                 entityManager.createNativeQuery(sql)
                     .setParameter(1, fullName)
@@ -65,6 +70,7 @@ public class DataGenerationServiceImpl implements DataGenerationService {
                     .setParameter(9, generateEmail(firstName, lastName))
                     .setParameter(10, LocalDateTime.now())
                     .setParameter(11, loginInfoId)
+                    .setParameter(12, userId)
                     .executeUpdate();
                 
                 generated++;
@@ -139,22 +145,47 @@ public class DataGenerationServiceImpl implements DataGenerationService {
                 if (!customerIds.isEmpty()) {
                     customerId = customerIds.get(random.nextInt(customerIds.size()));
                 }
+
+                Integer userId = getManagerUserId(); // Ou une autre méthode pour obtenir un user_id valide
+                if (userId == null) {
+                    logger.severe("Impossible de générer des clients: aucun utilisateur trouvé");
+                    return 0;
+                }
                 
-                String sql = "INSERT INTO trigger_ticket (subject, description, status, priority, customer_id, created_at) " +
-                             "VALUES (?, ?, ?, ?, ?, ?)";
+                // Insérer le ticket
+                String ticketSql = "INSERT INTO trigger_ticket (subject, description, status, priority, customer_id, created_at,manager_id) " +
+                            "VALUES (?, ?, ?, ?, ?, ?, ?)";
                 
-                entityManager.createNativeQuery(sql)
+                entityManager.createNativeQuery(ticketSql)
                     .setParameter(1, "Ticket #" + UUID.randomUUID().toString().substring(0, 8))
                     .setParameter(2, "Description générée automatiquement pour le ticket " + (i + 1))
                     .setParameter(3, getRandomElement(statuses))
                     .setParameter(4, getRandomElement(priorities))
                     .setParameter(5, customerId)
                     .setParameter(6, LocalDateTime.now())
+                    .setParameter(7, userId)
+                    .executeUpdate();
+                
+                // Récupérer l'ID du ticket qui vient d'être inséré
+                Object ticketIdResult = entityManager.createNativeQuery("SELECT LAST_INSERT_ID()").getSingleResult();
+                int ticketId = ((Number) ticketIdResult).intValue();
+                
+                // Générer un montant aléatoire entre 100 et 5000
+                double montant = 100000 + (random.nextDouble() * 900000);
+                // Arrondir à 2 décimales
+                montant = Math.round(montant * 100.0) / 100.0;
+                
+                // Insérer la dépense correspondante
+                String depenseSql = "INSERT INTO depenses (montant, lead_id, ticket_id) VALUES (?, NULL, ?)";
+                
+                entityManager.createNativeQuery(depenseSql)
+                    .setParameter(1, montant)
+                    .setParameter(2, ticketId)
                     .executeUpdate();
                 
                 generated++;
             } catch (Exception e) {
-                logger.severe("Error generating ticket: " + e.getMessage());
+                logger.severe("Error generating ticket with expense: " + e.getMessage());
                 // Continue with the next ticket
             }
         }
@@ -307,7 +338,7 @@ public class DataGenerationServiceImpl implements DataGenerationService {
         entityManager.createNativeQuery(sql)
             .setParameter(1, generateUsername())
             .setParameter(2, UUID.randomUUID().toString())
-            .setParameter(3, false)
+            .setParameter(3, 0)
             .executeUpdate();
         
         // Récupérer l'ID généré
