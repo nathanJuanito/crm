@@ -65,11 +65,6 @@ public class BudgetController {
     // Afficher le formulaire de création de budget
     @GetMapping("/create-budget")
     public String showCreateBudgetForm(Model model, Authentication authentication) {
-        // Vérifier si l'utilisateur a les droits d'accès
-        if (!AuthorizationUtil.hasRole(authentication, "ROLE_MANAGER")) {
-            return "redirect:/access-denied";
-        }
-        
         // Récupérer tous les clients
         List<Customer> customers = customerService.findAll();
         
