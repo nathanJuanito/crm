@@ -93,4 +93,7 @@ public interface DepenseRepository extends JpaRepository<Depense, Integer> {
      */
     @Query("SELECT SUM(d.montant) FROM Depense d WHERE d.lead.leadId = :leadId")
     BigDecimal getTotalAmountByLeadId(@Param("leadId") Integer leadId);
+
+    @Query("SELECT SUM(d.montant) FROM Depense d")
+    BigDecimal getTotalDepense();
 }

@@ -34,31 +34,31 @@ public class TempActivityImport {
     // Nom du fichier pour le reporting d'erreurs
     private String fileName;
    
-    // Méthode de validation personnalisée pour le statut en fonction du type
-    @AssertTrue(message = "Invalid status for the specified type")
-    public boolean isStatusValidForType() {
-        if (type == null || status == null) {
-            return true; // Laissez les autres validations gérer les valeurs nulles
-        }
+    // // Méthode de validation personnalisée pour le statut en fonction du type
+    // @AssertTrue(message = "Invalid status for the specified type")
+    // public boolean isStatusValidForType() {
+    //     if (type == null || status == null) {
+    //         return true; // Laissez les autres validations gérer les valeurs nulles
+    //     }
         
-        if ("ticket".equalsIgnoreCase(type)) {
-            return status.matches("^(open|assigned|on-hold|in-progress|resolved|closed|reopened|pending-customer-response|escalated|archived)$");
-        } else if ("lead".equalsIgnoreCase(type)) {
-            return status.matches("^(meeting-to-schedule|archived|success|assign-to-sales)$");
-        }
+    //     if ("ticket".equalsIgnoreCase(type)) {
+    //         return status.matches("^(open|assigned|on-hold|in-progress|resolved|closed|reopened|pending-customer-response|escalated|archived|meeting-to-schedule|archived|success|assign-to-sales)$");
+    //     } else if ("lead".equalsIgnoreCase(type)) {
+    //         return status.matches("^(meeting-to-schedule|archived|success|assign-to-sales|open|assigned|on-hold|in-progress|resolved|closed|reopened|pending-customer-response|escalated|archived)$");
+    //     }
         
-        return false; // Type non reconnu
-    }
+    //     return false; // Type non reconnu
+    // }
     
-    // Méthode pour obtenir le message d'erreur approprié pour le statut
-    public String getStatusValidationMessage() {
-        if ("ticket".equalsIgnoreCase(type)) {
-            return "For ticket type, status must be one of: open, assigned, on-hold, in-progress, resolved, closed, reopened, pending-customer-response, escalated, archived";
-        } else if ("lead".equalsIgnoreCase(type)) {
-            return "For lead type, status must be one of: meeting-to-schedule, scheduled, success, assign-to-sales";
-        }
-        return "Invalid status for the specified type";
-    }
+    // // Méthode pour obtenir le message d'erreur approprié pour le statut
+    // public String getStatusValidationMessage() {
+    //     if ("ticket".equalsIgnoreCase(type)) {
+    //         return "For ticket type, status must be one of: open, assigned, on-hold, in-progress, resolved, closed, reopened, pending-customer-response, escalated, archived";
+    //     } else if ("lead".equalsIgnoreCase(type)) {
+    //         return "For lead type, status must be one of: meeting-to-schedule, scheduled, success, assign-to-sales";
+    //     }
+    //     return "Invalid status for the specified type";
+    // }
    
     // Constructeurs, getters et setters
     public TempActivityImport() {}
