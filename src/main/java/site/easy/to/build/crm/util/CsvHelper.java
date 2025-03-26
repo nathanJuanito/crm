@@ -15,6 +15,9 @@ import site.easy.to.build.crm.entity.Ticket;
 import site.easy.to.build.crm.entity.User;
 import site.easy.to.build.crm.repository.CustomerRepository;
 import site.easy.to.build.crm.repository.UserRepository;
+import site.easy.to.build.crm.service.depense.DepenseService;
+import site.easy.to.build.crm.service.lead.LeadService;
+import site.easy.to.build.crm.service.ticket.TicketService;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -43,6 +46,16 @@ public class CsvHelper {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private TicketService ticketService;
+    
+    @Autowired
+    private LeadService leadService;
+
+    @Autowired
+    private DepenseService depenseService;
+
 
     /**
      * Vérifie si un fichier est au format CSV
@@ -288,6 +301,25 @@ public class CsvHelper {
         
         csvPrinter.flush();
     }
+    public void exportToCsv(Customer customer, PrintWriter writer) throws IOException {
+        String copyName=customer.getName()+"copy";
+        String emailCopy=customer.getEmail()+"copy";
+        List<Ticket> tickets = ticketService.findCustomerTickets(customer.getCustomerId());
+        List<Lead> leads = leadService.findByCustomerCustomerId(customer.getCustomerId());
+        String table="customer";
+        CSVPrinter csvPrinter = new CSVPrinter(writer, CSVFormat.DEFAULT
+                .withHeader("Table","ID", "Nom", "Email", "Pays", "Date de création"));
+                csvPrinter.printRecord(
+                    table,
+                    customer.getCustomerId(),
+                    copyName,
+                    emailCopy,
+                    customer.getCountry()
+            );    
+        csvPrinter.flush();
+        exportTicketsToCsv(tickets, writer);
+        exportLeadsToCsv(leads, writer);
+    }
 
     /**
      * Exporte une liste de leads vers un fichier CSV
@@ -297,20 +329,23 @@ public class CsvHelper {
      */
     public void exportLeadsToCsv(List<Lead> leads, PrintWriter writer) throws IOException {
         CSVPrinter csvPrinter = new CSVPrinter(writer, CSVFormat.DEFAULT
-                .withHeader("ID", "Nom", "Téléphone", "Statut", "Client", "Date de création"));
+                .withHeader("Table","ID", "Nom", "Statut", "Client","depense","Date de création"));
         
         for (Lead lead : leads) {
+            String table="lead";
+            BigDecimal totalExpense = depenseService.getTotalAmountByLeadId(lead.getLeadId());
             csvPrinter.printRecord(
-                    lead.getLeadId(),
+                    table,
                     lead.getName(),
-                    lead.getPhone(),
                     lead.getStatus(),
-                    lead.getCustomer() != null ? lead.getCustomer().getName() : "",
+                    lead.getCustomer() != null ? lead.getCustomer().getCustomerId() : "",
+                    totalExpense,
                     lead.getCreatedAt() != null ? lead.getCreatedAt().format(DATE_TIME_FORMATTER) : ""
             );
         }
         
         csvPrinter.flush();
+
     }
 
     /**
@@ -321,16 +356,19 @@ public class CsvHelper {
      */
     public void exportTicketsToCsv(List<Ticket> tickets, PrintWriter writer) throws IOException {
         CSVPrinter csvPrinter = new CSVPrinter(writer, CSVFormat.DEFAULT
-                .withHeader("ID", "Sujet", "Description", "Statut", "Priorité", "Client", "Date de création"));
+                .withHeader("Table","ID","Sujet", "Statut", "Priorité", "Client","depense","Date de création"));
         
         for (Ticket ticket : tickets) {
+            String table="ticket";
+            BigDecimal depense=depenseService.getTotalAmountByTicketId(ticket.getTicketId());
             csvPrinter.printRecord(
+                    table,
                     ticket.getTicketId(),
                     ticket.getSubject(),
-                    ticket.getDescription(),
                     ticket.getStatus(),
                     ticket.getPriority(),
-                    ticket.getCustomer() != null ? ticket.getCustomer().getName() : "",
+                    ticket.getCustomer() != null ? ticket.getCustomer().getCustomerId() : "",
+                    depense,
                     ticket.getCreatedAt() != null ? ticket.getCreatedAt().format(DATE_TIME_FORMATTER) : ""
             );
         }

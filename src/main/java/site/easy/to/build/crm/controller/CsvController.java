@@ -158,54 +158,29 @@ public class CsvController {
         return "redirect:/csv";
     }
 
-    @GetMapping("/export/{entityType}")
-    public void exportCsv(@PathVariable("entityType") String entityType,
+    @PostMapping("/export/{idCustomer}")
+    public void exportCsv(@PathVariable("idCustomer") int idCustomer,
                          HttpServletResponse response,
-                         Authentication authentication) throws IOException {
+                         Authentication authentication,
+                         RedirectAttributes redirectAttributes) throws IOException {
         
         // Vérifier si l'utilisateur a les droits d'accès
         if (!AuthorizationUtil.hasRole(authentication, "ROLE_MANAGER") &&
             !AuthorizationUtil.hasRole(authentication, "ROLE_EMPLOYEE")) {
             response.sendRedirect("/access-denied");
-            return;
         }
         
-        // Vérifier si le type d'entité est valide
-        if (!ALLOWED_ENTITY_TYPES.contains(entityType)) {
-            response.sendRedirect("/csv");
-            return;
-        }
+        // // Vérifier si le type d'entité est valide
+        // if (!ALLOWED_ENTITY_TYPES.contains(entityType)) {
+        //     response.sendRedirect("/csv");
+        //     return;
+        // }
         
         // Configuration de la réponse HTTP pour le téléchargement du fichier CSV
         response.setContentType("text/csv");
-        response.setHeader("Content-Disposition", "attachment; filename=\"" + entityType + ".csv\"");
-        
-        // Exportation réelle des données selon le type d'entité
-        try {
-            switch (entityType) {
-                case "customers":
-                    List<Customer> customers = customerService.findAll();
-                    csvHelper.exportCustomersToCsv(customers, response.getWriter());
-                    break;
-                case "leads":
-                    List<Lead> leads = leadService.findAll();
-                    csvHelper.exportLeadsToCsv(leads, response.getWriter());
-                    break;
-                case "tickets":
-                    List<Ticket> tickets = ticketService.findAll();
-                    csvHelper.exportTicketsToCsv(tickets, response.getWriter());
-                    break;
-                case "contracts":
-                    List<Contract> contracts = contractService.findAll();
-                    csvHelper.exportContractsToCsv(contracts, response.getWriter());
-                    break;
-                default:
-                    response.getWriter().write("Type d'entité non pris en charge");
-            }
-        } catch (Exception e) {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.getWriter().write("Erreur lors de l'exportation: " + e.getMessage());
-        }
+        response.setHeader("Content-Disposition", "attachment; filename=\"" + "customer" + ".csv\"");
+                Customer customer = customerService.findByCustomerId(idCustomer);
+                csvHelper.exportToCsv(customer, response.getWriter());
     }
     
     @PostMapping("/delete-data")

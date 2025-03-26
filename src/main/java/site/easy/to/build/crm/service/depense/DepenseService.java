@@ -54,4 +54,6 @@ public interface DepenseService {
     BigDecimal getTotalAmountByLeadId(Integer leadId);
     
     BigDecimal getTotalAmountByTicketId(Integer ticketId);
+
+    BigDecimal getTotalDepense();
 }

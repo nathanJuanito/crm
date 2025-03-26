@@ -232,7 +232,7 @@ public class CsvImportService {
                     Ticket ticket = new Ticket();
                     ticket.setCustomer(customer);
                     ticket.setSubject(tempActivity.getSubjectOrName());
-                    ticket.setStatus(tempActivity.getStatus());
+                    ticket.setStatus("open");
                     ticket.setPriority("medium");
                     ticket.setEmployee(loggedInUser);
                     ticket.setCreatedAt(LocalDateTime.now());
@@ -254,7 +254,7 @@ public class CsvImportService {
                     Lead lead = new Lead();
                     lead.setCustomer(customer);
                     lead.setName(tempActivity.getSubjectOrName());
-                    lead.setStatus(tempActivity.getStatus());
+                    lead.setStatus("meeting-to-schedule");
                     lead.setCreatedAt(LocalDateTime.now());
                     leadRepository.save(lead);
                     // Convertir les dépenses
