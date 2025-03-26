@@ -1,56 +1,27 @@
 package site.easy.to.build.crm.entity.temp;
 
 public class ImportError {
-    private String entityType; // Type d'entité (User, Customer, etc.)
-    private String field; // Champ concerné
-    private String value; // Valeur problématique
-    private String message; // Message d'erreur
-    private int lineNumber; // Numéro de ligne dans le CSV
+    private String fileName;
+    private int lineNumber;
+    private String errorMessage;
+    private String rawData;
     
-    // Constructeur par défaut
-    public ImportError() {
-    }
+    // Constructeurs, getters et setters
+    public ImportError() {}
     
-    // Constructeur avec tous les champs
-    public ImportError(String entityType, String field, String value, String message, int lineNumber) {
-        this.entityType = entityType;
-        this.field = field;
-        this.value = value;
-        this.message = message;
+    public ImportError(String fileName, int lineNumber, String errorMessage, String rawData) {
+        this.fileName = fileName;
         this.lineNumber = lineNumber;
+        this.errorMessage = errorMessage;
+        this.rawData = rawData;
     }
     
-    // Getters et setters
-    public String getEntityType() {
-        return entityType;
+    public String getFileName() {
+        return fileName;
     }
     
-    public void setEntityType(String entityType) {
-        this.entityType = entityType;
-    }
-    
-    public String getField() {
-        return field;
-    }
-    
-    public void setField(String field) {
-        this.field = field;
-    }
-    
-    public String getValue() {
-        return value;
-    }
-    
-    public void setValue(String value) {
-        this.value = value;
-    }
-    
-    public String getMessage() {
-        return message;
-    }
-    
-    public void setMessage(String message) {
-        this.message = message;
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
     }
     
     public int getLineNumber() {
@@ -61,8 +32,29 @@ public class ImportError {
         this.lineNumber = lineNumber;
     }
     
+    public String getErrorMessage() {
+        return errorMessage;
+    }
+    
+    public void setErrorMessage(String errorMessage) {
+        this.errorMessage = errorMessage;
+    }
+    
+    public String getRawData() {
+        return rawData;
+    }
+    
+    public void setRawData(String rawData) {
+        this.rawData = rawData;
+    }
+    
     @Override
     public String toString() {
-        return "Line " + lineNumber + ": [" + entityType + "] " + field + " - " + message + " (value: " + value + ")";
+        return "ImportError{" +
+                "fileName='" + fileName + '\'' +
+                ", lineNumber=" + lineNumber +
+                ", errorMessage='" + errorMessage + '\'' +
+                ", rawData='" + rawData + '\'' +
+                '}';
     }
 }

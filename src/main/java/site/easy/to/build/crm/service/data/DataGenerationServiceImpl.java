@@ -432,7 +432,9 @@ public class DataGenerationServiceImpl implements DataGenerationService {
     /**
      * Récupère l'ID d'un utilisateur avec le rôle MANAGER
      */
-    private Integer getManagerUserId() {
+    @Override
+    @Transactional
+    public Integer getManagerUserId() {
         Integer userId = null;
         try {
             Object result = entityManager.createNativeQuery(

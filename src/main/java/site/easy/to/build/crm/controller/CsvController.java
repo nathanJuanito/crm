@@ -1,5 +1,7 @@
 package site.easy.to.build.crm.controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -18,9 +20,14 @@ import site.easy.to.build.crm.service.database.DatabaseCleanupService;
 import site.easy.to.build.crm.service.lead.LeadService;
 import site.easy.to.build.crm.service.ticket.TicketService;
 import site.easy.to.build.crm.service.contract.ContractService;
+import site.easy.to.build.crm.service.csv.CsvImportService;
 import site.easy.to.build.crm.entity.Customer;
 import site.easy.to.build.crm.entity.Lead;
 import site.easy.to.build.crm.entity.Ticket;
+import site.easy.to.build.crm.entity.temp.ImportError;
+import site.easy.to.build.crm.entity.temp.TempActivityImport;
+import site.easy.to.build.crm.entity.temp.TempBudgetImport;
+import site.easy.to.build.crm.entity.temp.TempCustomerImport;
 import site.easy.to.build.crm.entity.Contract;
 import site.easy.to.build.crm.service.data.DataGenerationService;
 
@@ -31,12 +38,16 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 @Controller
 @RequestMapping("/csv")
 public class CsvController {
+
+    private static final Logger logger = LoggerFactory.getLogger(CsvController.class);
+
     @Autowired
     private DataGenerationService dataGenerationService;
 
@@ -58,6 +69,9 @@ public class CsvController {
     @Autowired
     private CsvHelper csvHelper;
 
+    @Autowired
+    private CsvImportService csvImportService;
+
     private static final List<String> ALLOWED_ENTITY_TYPES = Arrays.asList(
             "customers", "leads", "tickets", "contracts");
 
@@ -72,87 +86,75 @@ public class CsvController {
         model.addAttribute("entityTypes", ALLOWED_ENTITY_TYPES);
         return "csv/csv-management";
     }
-
+    /**
+     * Process the imported files
+     * 
+     * @param file1 the first CSV file
+     * @param file2 the second CSV file
+     * @param redirectAttributes for flash attributes
+     * @return redirect to the import form
+     */
     @PostMapping("/import")
-    @Transactional
-    public String importCsv(@RequestParam("file") MultipartFile file,
-                           @RequestParam("entityType") String entityType,
-                           RedirectAttributes redirectAttributes,
-                           Authentication authentication) {
-        
-        // Vérifier si l'utilisateur a les droits d'accès
-        if (!AuthorizationUtil.hasRole(authentication, "ROLE_MANAGER") &&
-            !AuthorizationUtil.hasRole(authentication, "ROLE_EMPLOYEE")) {
-            return "redirect:/access-denied";
-        }
-        
-        // Vérifier si le type d'entité est valide
-        if (!ALLOWED_ENTITY_TYPES.contains(entityType)) {
-            redirectAttributes.addFlashAttribute("error", "Type d'entité non valide");
-            return "redirect:/csv";
-        }
-        
-        // Vérifier si le fichier est vide
-        if (file.isEmpty()) {
-            redirectAttributes.addFlashAttribute("error", "Veuillez sélectionner un fichier à importer");
-            return "redirect:/csv";
-        }
-        
-        // Vérifier si le fichier est au format CSV
-        if (!csvHelper.isCSVFile(file)) {
-            redirectAttributes.addFlashAttribute("error", "Le fichier doit être au format CSV");
-            return "redirect:/csv";
-        }
+    public String processImport(
+            @RequestParam("file1") MultipartFile file1,
+            @RequestParam("file2") MultipartFile file2,
+            @RequestParam("file3") MultipartFile file3,
+            RedirectAttributes redirectAttributes,Model model,Authentication authentication) {
         
         try {
-            int importedCount = 0;
+        // Parser les fichiers
+        List<TempCustomerImport> customers = csvImportService.parseCsvToEntities(file1, TempCustomerImport.class);
+        List<TempActivityImport> activities = csvImportService.parseCsvToEntities(file2, TempActivityImport.class);
+        List<TempBudgetImport> budgets = csvImportService.parseCsvToEntities(file3, TempBudgetImport.class);
+        
+        // Valider les entités
+        List<ImportError> customerErrors = csvImportService.validateEntities(customers, file1.getOriginalFilename());
+        List<ImportError> activityErrors = csvImportService.validateEntities(activities, file2.getOriginalFilename());
+        List<ImportError> budgetErrors = csvImportService.validateEntities(budgets, file3.getOriginalFilename());
+        
+        // Combiner les erreurs
+        List<ImportError> allErrors = new ArrayList<>();
+        allErrors.addAll(customerErrors);
+        allErrors.addAll(activityErrors);
+        allErrors.addAll(budgetErrors);
+        
+        // Vérifier s'il y a des erreurs
+        if (!allErrors.isEmpty()) {
+            redirectAttributes.addFlashAttribute("errors", allErrors);
+            redirectAttributes.addFlashAttribute("error", 
+                    String.format("Import completed with %d validation errors.", allErrors.size()));
             
-            switch (entityType) {
-                case "customers":
-                    List<Customer> customers = csvHelper.csvToCustomers(file.getInputStream());
-                    for (Customer customer : customers) {
-                        customerService.save(customer);
-                    }
-                    importedCount = customers.size();
-                    break;
+                    model.addAttribute("customersErrors", customerErrors);
+                    model.addAttribute("activityErrors", activityErrors);
+                    model.addAttribute("budgetErrors", budgetErrors);
                     
-                case "leads":
-                    List<Lead> leads = csvHelper.csvToLeads(file.getInputStream());
-                    for (Lead lead : leads) {
-                        leadService.save(lead);
-                    }
-                    importedCount = leads.size();
-                    break;
-                    
-                case "tickets":
-                    List<Ticket> tickets = csvHelper.csvToTickets(file.getInputStream());
-                    for (Ticket ticket : tickets) {
-                        ticketService.save(ticket);
-                    }
-                    importedCount = tickets.size();
-                    break;
-                    
-                case "contracts":
-                    List<Contract> contracts = csvHelper.csvToContracts(file.getInputStream());
-                    for (Contract contract : contracts) {
-                        contractService.save(contract);
-                    }
-                    importedCount = contracts.size();
-                    break;
-                    
-                default:
-                    redirectAttributes.addFlashAttribute("error", "Type d'entité non pris en charge");
-                    return "redirect:/csv";
-            }
-            
-            redirectAttributes.addFlashAttribute("success",
-                    importedCount + " enregistrements importés avec succès pour " + entityType);
-                    
-        } catch (Exception e) {
-            // En cas d'erreur, annuler la transaction
-            redirectAttributes.addFlashAttribute("error", "Erreur lors de l'importation: " + e.getMessage());
+            return "csv/show-errors";
         }
         
+        // Si pas d'erreurs, procéder à l'importation
+        if (allErrors.isEmpty()) {
+            // Importer les clients d'abord
+            int importedCustomers = csvImportService.importCustomers(customers,authentication);
+            
+            // Puis importer les activités
+            int importedActivities = csvImportService.importActivities(activities,authentication);
+
+            // Puis importer les budgets
+            int importedBudgets = csvImportService.importBudget(budgets);
+            
+            // Ajouter un message de succès avec les statistiques
+            redirectAttributes.addFlashAttribute("success", 
+                String.format("Import completed successfully. Imported %d customers , %d activities and % importedBudgets.", 
+                    importedCustomers, importedActivities,importedBudgets));;
+                    
+            return "redirect:/csv";
+        }
+
+        
+    } catch (Exception e) {
+        // Gérer les exceptions...
+    }
+        redirectAttributes.addFlashAttribute("success", "Import completed successfully.");
         return "redirect:/csv";
     }
 

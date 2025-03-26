@@ -145,37 +145,45 @@
                         <div class="card-body text-center">
                             <i class="fas fa-file-import csv-icon text-primary"></i>
                             <h4 class="card-title">Import CSV</h4>
-                            <p class="card-text">Upload a CSV file to import data into the system.</p>
-                            
+                            <p class="card-text">Upload CSV files to import data into the system.</p>
+                           
                             <form th:action="@{/csv/import}" method="post" enctype="multipart/form-data">
-                                <div class="form-group">
-                                    <label for="entityType">Select Data Type</label>
-                                    <select class="form-control" id="entityType" name="entityType" required>
-                                        <option value="">-- Select Data Type --</option>
-                                        <option value="customers">Customers</option>
-                                        <option value="leads">Leads</option>
-                                        <option value="tickets">Tickets</option>
-                                        <option value="contracts">Contracts</option>
-                                    </select>
+                                <div class="file-upload-wrapper mb-3">
+                                    <label>CSV customer</label>
+                                    <label class="custom-file-upload">
+                                        <i class="fas fa-cloud-upload-alt"></i> Choose Customer
+                                        <input type="file" name="file1" class="file-upload-input" accept=".csv" required onchange="updateFileName(this, 'selectedFile1')">
+                                    </label>
+                                    <div id="selectedFile1" class="selected-file">No file selected</div>
                                 </div>
                                 
-                                <div class="file-upload-wrapper">
+                                <div class="file-upload-wrapper mb-3">
+                                    <label>CSV activities</label>
                                     <label class="custom-file-upload">
-                                        <i class="fas fa-cloud-upload-alt"></i> Choose CSV File
-                                        <input type="file" name="file" class="file-upload-input" accept=".csv" required onchange="updateFileName(this)">
+                                        <i class="fas fa-cloud-upload-alt"></i> Choose activities
+                                        <input type="file" name="file2" class="file-upload-input" accept=".csv" required onchange="updateFileName(this, 'selectedFile2')">
                                     </label>
-                                    <div id="selectedFile" class="selected-file">No file selected</div>
+                                    <div id="selectedFile2" class="selected-file">No file selected</div>
+                                </div>
+                                
+                                <div class="file-upload-wrapper mb-4">
+                                    <label>CSV budget</label>
+                                    <label class="custom-file-upload">
+                                        <i class="fas fa-cloud-upload-alt"></i> Choose budget
+                                        <input type="file" name="file3" class="file-upload-input" accept=".csv" onchange="updateFileName(this, 'selectedFile3')">
+                                    </label>
+                                    <div id="selectedFile3" class="selected-file">No file selected</div>
                                 </div>
                                 
                                 <button type="submit" class="btn btn-primary btn-block">
                                     <i class="fas fa-upload"></i> Import Data
                                 </button>
-                            </form>
-                            
+                            </form>                            
+                           
                             <div class="mt-4">
                                 <h5>Import Guidelines</h5>
                                 <ul class="text-left">
-                                    <li>File must be in CSV format</li>
+                                    <li>Files must be in CSV format</li>
                                     <li>First row should contain column headers</li>
                                     <li>Make sure all required fields are included</li>
                                     <li>Maximum file size: 10MB</li>
@@ -419,9 +427,9 @@
 
 <!-- Custom JavaScript for this page -->
 <script>
-    function updateFileName(input) {
-        const fileName = input.files[0] ? input.files[0].name : 'No file selected';
-        document.getElementById('selectedFile').textContent = fileName;
+    function updateFileName(input, elementId) {
+        const fileName = input.files[0] ? input.files[0].name : "No file selected";
+        document.getElementById(elementId).textContent = fileName;
     }
     
     // Auto-dismiss alerts after 5 seconds
