@@ -36,4 +36,6 @@ public interface DataGenerationService {
      * @return Nombre de modèles d'email effectivement générés
      */
     int generateEmailTemplates(int count);
+
+    Integer getManagerUserId();
 }
